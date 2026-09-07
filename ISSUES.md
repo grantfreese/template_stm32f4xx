@@ -63,7 +63,7 @@ bench sessions can see scheduler health without a debugger.
   counts and they resume growing.
 
 ## B1: 'debug adc1' never streams; add die-temperature streaming
-**Status**: `to-do`
+**Status**: `in-progress`
 
 **User Description**:
 The debug streaming on adc1 does not work. I want to be able to stream the temperature we read over the ADC.
@@ -75,14 +75,31 @@ die temperature every second yet stages nothing to this streamer, and the stream
 volts plus raw counts, with no temperature form.
 
 **Implementation Details**:
-To be fleshed out before starting. Sketch: stage the die-temperature sample (raw counts and degrees Celsius)
-from the CAN task's periodic read; extend or rework the ADC1 streamer output to print temperature. Decide how
-the staging cadence interacts with `debug rate` versus the fixed 1 Hz sampling.
+- Add the missing producer in the CAN task. The task already samples the die temperature once per broadcast
+  period (1 Hz) and computes die_temperature_c from the raw channel-16 reading; immediately after that,
+  stage it with DebugStageAdc1(tick_msec, raw, die_temperature_c). tick_msec is osKernelGetTickCount(), which
+  is milliseconds at the 1000 Hz kernel tick.
+- Gate staging on the debug flags inside DebugStageAdc1: return early unless IsDebugEnabled(kDebugAdc1) (master
+  AND adc1 both set), matching the CAN streamer's staging-side gating. Toggling either flag off stops staging,
+  so the stream stops; at most one already-staged line drains afterward.
+- Repurpose the streamer's third parameter from PA1 voltage to die temperature in degrees Celsius. The
+  parameter types are unchanged (uint32_t, uint16_t, float), so the weak stub in debug_stubs.cpp needs no
+  change. The print form becomes `[<ms> ms] ADC1 die temp: <t> C (raw=<n>)`, matching the `.2f C (raw=%u)`
+  format the `can` command already uses. The stale voltage form is removed; nothing produced it.
+- Cadence: the sample is staged at the fixed 1 Hz sampling rate and the streamer keeps a single last-writer
+  slot, so each sample prints at most once regardless of `debug rate`. `debug rate` only throttles the CLI's
+  drain check; above 1 Hz there is nothing new between samples, so the stream is naturally ~1 Hz. Below 1 Hz,
+  intermediate samples are overwritten and the latest is printed. No new rate machinery is added.
+- Update the DebugStageAdc1 doxygen in debug_stage.h for the third parameter and the `debug adc1` help/info
+  text to name die temperature.
 
 **Acceptance Criteria**:
-- With `debug` and `debug adc1` enabled, die-temperature lines stream periodically on the CLI and stop when
-  either flag is toggled off.
+- With `debug` and `debug adc1` enabled, die-temperature lines stream ~once per second on the CLI in the form
+  `ADC1 die temp: <t> C (raw=<n>)`, and stop when either flag is toggled off.
+- The streamed temperature and raw count match the `can` command's MCU_TEMPERATURE reading.
 
 **Testing**:
-- Bench serial session: toggle the flags, verify temperature lines appear with plausible values and match the
-  `can` status output; verify silence after toggling off.
+- Bench serial session: enable `debug` then `debug adc1`; verify die-temperature lines appear ~1 Hz with
+  plausible values (tens of C for a room-temperature die) and that the temperature and raw count match the
+  `can` command's MCU_TEMPERATURE line; set `debug rate 0.5` and confirm the lines slow to ~0.5 Hz; toggle
+  `debug adc1` off and confirm the stream stops; toggle master `debug` off and confirm it stops.
