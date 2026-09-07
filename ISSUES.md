@@ -63,7 +63,7 @@ bench sessions can see scheduler health without a debugger.
   counts and they resume growing.
 
 ## B1: 'debug adc1' never streams; add die-temperature streaming
-**Status**: `in-progress`
+**Status**: `review`
 
 **User Description**:
 The debug streaming on adc1 does not work. I want to be able to stream the temperature we read over the ADC.
