@@ -32,6 +32,7 @@ void RegisterI2cCliCommands(EmbeddedCli* cli)    __attribute__((weak));
 void RegisterNvmCliCommands(EmbeddedCli* cli)    __attribute__((weak));
 void RegisterSimpleCliCommands(EmbeddedCli* cli) __attribute__((weak));
 void RegisterSpiCliCommands(EmbeddedCli* cli)    __attribute__((weak));
+void RegisterStatusCliCommands(EmbeddedCli* cli) __attribute__((weak));
 void RegisterUartCliCommands(EmbeddedCli* cli)   __attribute__((weak));
 
 // clang-format on

@@ -27,7 +27,7 @@ or fixes rather than deleting inline.
   testing.
 
 ## T1: 'status' CLI: task loop stats and stack usage
-**Status**: `to-do`
+**Status**: `done`
 
 **Description**:
 fw::TaskStats (src/tasks/task_stats.h) is fully implemented but never instantiated, and no CLI command reports
@@ -35,12 +35,21 @@ task health. Add a cross-cutting 'status' command that reports per-task loop sta
 bench sessions can see scheduler health without a debugger.
 
 **Implementation Details**:
-To be fleshed out before starting. Sketch: instantiate fw::TaskStats in the CLI and CAN task loops, calling
-RecordTick() with measured iteration duration against each task's target period; add src/cli/cli_status.cpp
-(cross-cutting module per the CLI file-organization rules) registered via the weak-registrar pattern and
-cmake/cli_features.cmake; 'status' prints, per task: loop count, min/avg/max iteration time, deadline misses,
-and stack peak from uxTaskGetStackHighWaterMark() against the declared stack size. Update the stale
-kStackSizeWordsCli comment in task_cli.h that already refers to the 'status' command.
+- Each task module (task_cli.cpp, task_can.cpp) owns a static fw::TaskStats written only from its own loop;
+  read-only accessors GetCliTaskStats() / GetCanTaskStats() expose them to the CLI.
+- The recorded duration is the work portion of each iteration (loop body, excluding the osDelay), measured
+  with osKernelGetTickCount(); RecordTick() gets the task period as the target, so a deadline miss means the
+  work alone exceeded the period -- a genuine overrun. Measuring start-to-start instead would count a miss
+  every time tick rounding pushed 50 ms to 51, which is noise, not a miss.
+- Reset is requested via a per-task volatile flag consumed at the top of the owning task's loop (same
+  aligned-single-word idiom as the CLI shutdown handshake), keeping the stats single-writer.
+- kCliTaskPeriodMsec is added to task_cli.h and kCanTaskPeriodMsec moves from task_can.cpp to task_can.h so
+  the status module can print each task's period.
+- src/cli/cli_status.cpp iterates a table of {name, handle, stack size, period, stats accessor, reset
+  requester}; stack peak = declared words minus uxTaskGetStackHighWaterMark() remaining words.
+- Registered as RegisterStatusCliCommands via cli_registry.h, cli_binding.cpp, and cmake/cli_features.cmake.
+- 'status' prints one line per task; 'status reset' requests a reset of every task's statistics.
+- Fix the kStackSizeWordsCli comment in task_cli.h to a valid one-line Doxygen @brief.
 
 **Acceptance Criteria**:
 - 'status' lists every task with loop statistics and stack usage (peak words used, declared size, percentage).
@@ -48,8 +57,10 @@ kStackSizeWordsCli comment in task_cli.h that already refers to the 'status' com
 - Stats survive continuously (no reset on read) unless an explicit reset argument is provided.
 
 **Testing**:
-- Bench serial session: run 'status', verify both tasks appear with plausible loop times (CLI ~50 ms, CAN
-  ~100 ms) and stack percentages below 100; confirm counts grow between invocations.
+- Bench serial session: run 'status', verify both tasks appear with plausible work times (a few ms at most
+  against the printed 50 ms / 100 ms periods), zero deadline misses at idle, and stack percentages below 100;
+  confirm loop counts grow between invocations (~20 Hz CLI, ~10 Hz CAN); verify 'status reset' zeroes the
+  counts and they resume growing.
 
 ## B1: 'debug adc1' never streams; add die-temperature streaming
 **Status**: `to-do`

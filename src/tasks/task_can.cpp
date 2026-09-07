@@ -29,10 +29,13 @@ const osThreadAttr_t taskAttributesCan = {
 };
 // clang-format on
 
-static constexpr uint32_t kCanTaskPeriodMsec{100};
-
 static fw::Adc1 adc1_;
 static CanBroadcast can_broadcast_;
+
+// Written only by this task; the reset flag keeps 'status reset' from the CLI
+// task out of the stats fields (aligned single-word flag, atomic on Cortex-M4).
+static fw::TaskStats task_stats;
+static volatile bool stats_reset_pending{false};
 
 // Written only by the CAN task; read by the CLI task. Aligned 32-bit accesses are atomic
 // on Cortex-M4, so volatile is sufficient.
@@ -42,6 +45,10 @@ static volatile uint16_t die_temperature_raw{0};
 float GetMcuDieTemperatureCelsius() { return die_temperature_c; }
 
 uint16_t GetMcuDieTemperatureRaw() { return die_temperature_raw; }
+
+const fw::TaskStats& GetCanTaskStats() { return task_stats; }
+
+void RequestCanTaskStatsReset() { stats_reset_pending = true; }
 
 void TaskCan(void* argument)
 {
@@ -54,6 +61,16 @@ void TaskCan(void* argument)
     // thread loop
     for (;;)
     {
+        if (stats_reset_pending)
+        {
+            task_stats.Reset();
+            stats_reset_pending = false;
+        }
+
+        // Record the work portion only (delay excluded): a deadline miss means the
+        // work alone exceeded the period.
+        const uint32_t work_start_tick = osKernelGetTickCount();
+
         // Assert the bus run state every tick: a no-op once running, and the retry path
         // after a failed init-mode exit (bus stuck dominant at boot or during bus-off).
         fw::SetCanMode(fw::CanMode::kRunning);
@@ -71,6 +88,8 @@ void TaskCan(void* argument)
 
             can_broadcast_.Broadcast(&hcan, die_temperature_c, raw);
         }
+
+        task_stats.RecordTick(osKernelGetTickCount() - work_start_tick, kCanTaskPeriodMsec);
 
         osDelay(kCanTaskPeriodMsec);
     }

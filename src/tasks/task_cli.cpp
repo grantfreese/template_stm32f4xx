@@ -35,9 +35,18 @@ const osThreadAttr_t taskAttributesCli = {
 static volatile bool cli_shutdown_requested{false};
 static volatile bool cli_shutdown_complete{false};
 
+// Written only by this task; the reset flag keeps 'status reset' from another
+// context out of the stats fields (aligned single-word flag, atomic on Cortex-M4).
+static fw::TaskStats task_stats;
+static volatile bool stats_reset_pending{false};
+
 void RequestCliShutdown() { cli_shutdown_requested = true; }
 
 bool IsCliShutdownComplete() { return cli_shutdown_complete; }
+
+const fw::TaskStats& GetCliTaskStats() { return task_stats; }
+
+void RequestCliTaskStatsReset() { stats_reset_pending = true; }
 
 void TaskCli(void* argument)
 {
@@ -49,9 +58,21 @@ void TaskCli(void* argument)
     // thread loop
     for (;;)
     {
+        if (stats_reset_pending)
+        {
+            task_stats.Reset();
+            stats_reset_pending = false;
+        }
+
+        // Record the work portion only (delay excluded): a deadline miss means the
+        // work alone exceeded the period.
+        const uint32_t work_start_tick = osKernelGetTickCount();
+
         DrainCliUart();
         embeddedCliProcess(getCliPointer());
         DebugPrintPending();
+
+        task_stats.RecordTick(osKernelGetTickCount() - work_start_tick, kCliTaskPeriodMsec);
 
         if (cli_shutdown_requested)
         {
@@ -75,6 +96,6 @@ void TaskCli(void* argument)
             }
         }
 
-        osDelay(50);
+        osDelay(kCliTaskPeriodMsec);
     }
 }

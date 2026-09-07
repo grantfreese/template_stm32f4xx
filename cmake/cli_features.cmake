@@ -39,6 +39,10 @@ target_sources(app PRIVATE ${CMAKE_SOURCE_DIR}/src/cli/cli_simple.cpp)
 # SCK. Verifies SPI clock rate without a scope.
 target_sources(app PRIVATE ${CMAKE_SOURCE_DIR}/src/cli/cli_spi.cpp)
 
+# status -- 'status [reset]' command: per-task loop statistics (count,
+# min/avg/max work time, deadline misses) and stack usage.
+target_sources(app PRIVATE ${CMAKE_SOURCE_DIR}/src/cli/cli_status.cpp)
+
 # uart -- 'uart status' command: CLI-UART driver overrun count (DMA RX ring
 # should keep this at zero).
 target_sources(app PRIVATE ${CMAKE_SOURCE_DIR}/src/platform/stm32f3xx_uart_cli.cpp)

@@ -29,6 +29,7 @@ void initCliBinding()
         RegisterNvmCliCommands,
         RegisterSimpleCliCommands,
         RegisterSpiCliCommands,
+        RegisterStatusCliCommands,
         RegisterUartCliCommands,
     };
 
