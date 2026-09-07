@@ -1,0 +1,51 @@
+VERSION ""
+
+
+NS_ :
+    NS_DESC_
+    CM_
+    BA_DEF_
+    BA_
+    VAL_
+    CAT_DEF_
+    CAT_
+    FILTER
+    BA_DEF_DEF_
+    EV_DATA_
+    ENVVAR_DATA_
+    SGTYPE_
+    SGTYPE_VAL_
+    BA_DEF_SGTYPE_
+    BA_SGTYPE_
+    SIG_TYPE_REF_
+    VAL_TABLE_
+    SIG_GROUP_
+    SIG_VALTYPE_
+    SIGTYPE_VALTYPE_
+    BO_TX_BU_
+    BA_DEF_REL_
+    BA_REL_
+    BA_DEF_DEF_REL_
+    BU_SG_REL_
+    BU_EV_REL_
+    BU_BO_REL_
+    SG_MUL_VAL_
+
+BS_:
+
+BU_: TEMPLATE
+
+BO_ 2678063105 FW_VERSION: 5 TEMPLATE
+   SG_ FW_VER_MAJOR : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+   SG_ FW_VER_MINOR : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+   SG_ FW_VER_PATCH : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+   SG_ FW_VER_TAGDIST : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+   SG_ FW_VER_LOCAL : 32|1@0+ (1,0) [0|1] "" Vector__XXX
+   SG_ FW_VER_DIRTY : 33|1@0+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 2678063106 MCU_TEMPERATURE: 4 TEMPLATE
+   SG_ MCU_DIE_TEMP : 7|16@0- (0.01,0) [-327.68|327.67] "degC" Vector__XXX
+   SG_ MCU_DIE_TEMP_RAW : 23|16@0+ (1,0) [0|4095] "" Vector__XXX
+
+CM_ BO_ 2678063105 "Git-derived firmware version; TAGDIST is commits since the last tag, LOCAL marks a non-CI build, DIRTY marks uncommitted changes.";
+CM_ BO_ 2678063106 "STM32 internal die temperature via ADC1 channel 16 and the factory TS_CAL1/TS_CAL2 calibration.";
