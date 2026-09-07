@@ -27,7 +27,7 @@ or fixes rather than deleting inline.
   testing.
 
 ## T1: 'status' CLI: task loop stats and stack usage
-**Status**: `in-progress`
+**Status**: `review`
 
 **Description**:
 fw::TaskStats (src/tasks/task_stats.h) is fully implemented but never instantiated, and no CLI command reports

@@ -7,9 +7,9 @@
 - T2: Dead-code audit of src/ and driver/
 
 ## In-Progress
-- T1: 'status' CLI: task loop stats and stack usage
 
 ## Review
+- T1: 'status' CLI: task loop stats and stack usage
 
 ## Done
 
