@@ -176,8 +176,9 @@ rm -rf build && cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=$(pwd)/toolchain/
 rm -rf build-tools && cmake -B build-tools -S tools -G Ninja
 ```
 
-**Flashing**: TODO — document the flash procedure (debug probe, scripts, power-sequencing
-constraints) once bench hardware is defined.
+**Flashing**: `scripts/flash.py` — programs `build/bin/app.elf` over SWD through a SEGGER J-Link
+via JLinkExe and `CommandFile.jlink` (device STM32F373CC), then resets the MCU so the new firmware
+boots. Transcript is suppressed on success; `-v` shows it. No power-sequencing constraints.
 
 **Serial console**: TODO — document the console port, baud rate, and any udev symlink once bench
 hardware is defined. Address USB-serial adapters by serial-number udev symlink, not the bare

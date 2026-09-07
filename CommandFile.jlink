@@ -1,0 +1,8 @@
+device STM32F373CC
+si SWD
+speed 4000
+connect
+loadfile build/bin/app.elf
+RSetType 8
+reset
+q
