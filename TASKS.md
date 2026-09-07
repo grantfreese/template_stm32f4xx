@@ -9,8 +9,8 @@
 ## In-Progress
 
 ## Review
-- T1: 'status' CLI: task loop stats and stack usage
 
 ## Done
+- T1: 'status' CLI: task loop stats and stack usage
 
 ## Canceled
