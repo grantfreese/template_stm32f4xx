@@ -162,7 +162,7 @@ void onDebug(EmbeddedCli* cli, char* args, void* context)
         cli_printf("usage: debug            toggle master enable");
         cli_printf("       debug info       show debug state");
         cli_printf("       debug can        toggle CAN frame logging");
-        cli_printf("       debug adc1       toggle ADC1 prints");
+        cli_printf("       debug adc1       toggle ADC1 die-temperature prints");
         cli_printf("       debug i2c2       toggle STM32 I2C2 transaction logging");
         cli_printf("       debug i2c2err    toggle STM32 I2C2 error logging");
         cli_printf("       debug rate <n>   set print rate (0.1-20 Hz)");

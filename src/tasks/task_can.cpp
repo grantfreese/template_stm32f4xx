@@ -7,6 +7,7 @@
 #include "adc1/adc1.h"
 #include "can/bus.h"
 #include "can/can_broadcast.h"
+#include "cli/debug_stage.h"
 #include "cmsis_os.h"
 #include "peripheral.h"
 
@@ -85,6 +86,8 @@ void TaskCan(void* argument)
             uint16_t raw = adc1_.ReadDieTemperatureRaw();
             die_temperature_raw = raw;
             die_temperature_c = fw::Adc1::DieTemperatureCelsiusFromRaw(raw);
+
+            DebugStageAdc1(tick, raw, die_temperature_c);
 
             can_broadcast_.Broadcast(&hcan, die_temperature_c, raw);
         }

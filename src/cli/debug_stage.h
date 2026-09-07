@@ -37,14 +37,15 @@ void SetDebugPrintRateHz(float hz);
 //! @return True if both master enable and the source bit are set.
 bool IsDebugEnabled(uint32_t source_flag);
 
-//! @brief Stage an ADC1 debug sample for printing by the CLI task.
+//! @brief Stage an ADC1 die-temperature sample for printing by the CLI task.
 //!
-//! The values are stored and a pending flag is set. The CLI task calls
-//! DebugPrintPending() to drain the buffer via cli_printf.
-//! @param tick_msec  Current RTOS tick in milliseconds.
-//! @param raw        12-bit ADC raw code (0-4095).
-//! @param voltage    Converted voltage in volts.
-void DebugStageAdc1(uint32_t tick_msec, uint16_t raw, float voltage);
+//! The values are stored and a pending flag is set. Staging is a no-op unless the master
+//! and adc1 debug flags are both set. The CLI task calls DebugPrintPending() to drain the
+//! buffer via cli_printf.
+//! @param tick_msec       Current RTOS tick in milliseconds.
+//! @param raw             12-bit channel-16 raw code (0-4095).
+//! @param temperature_c   Die temperature in degrees Celsius.
+void DebugStageAdc1(uint32_t tick_msec, uint16_t raw, float temperature_c);
 
 //! @brief Stage a CAN frame for debug printing.
 //!
