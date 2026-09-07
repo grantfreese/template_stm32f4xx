@@ -5,15 +5,24 @@
 #pragma once
 
 #include "cmsis_os.h"
+#include "tasks/task_stats.h"
 
 extern osThreadId_t taskCli_h;
 extern const osThreadAttr_t taskAttributesCli;
 
-//! Stack size for the CLI task, exposed so the `status` command can report
-//! peak usage as a fraction of the declared size.
+//! @brief CLI task stack size in words.
 constexpr unsigned int kStackSizeWordsCli{768};
 
+//! @brief CLI task loop period in milliseconds.
+constexpr uint32_t kCliTaskPeriodMsec{50};
+
 void TaskCli(void* argument);
+
+//! @brief Loop statistics for the CLI task. Written only by the CLI task.
+const fw::TaskStats& GetCliTaskStats();
+
+//! @brief Request a reset of the CLI task's loop statistics on its next iteration.
+void RequestCliTaskStatsReset();
 
 //! @brief Ask the CLI task to perform one final output-buffer drain and exit.
 //!
